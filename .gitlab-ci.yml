@@ -1,19 +1,19 @@
 image: docker:latest
 
 services:
-- docker:dind
-
+  - docker:dind
 
 ######################################## STAGES ########################################
 
 stages:
+  - build-and-push
+  - deploy
 
-- build-and-push
-- deploy
+######################################## VARIABLES ########################################
 
-
-
-
+variables:
+  IMAGE_NAME: "aishshelke/backend"
+  IMAGE_TAG: "$(date +%Y%m%d%H%M%S)-$CI_COMMIT_SHORT_SHA"
 
 ######################################## STAGE:BUILD ########################################
 
@@ -24,11 +24,14 @@ build:api:
   stage: build-and-push
   script:
     - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    - docker build -t aishshelke/backend:latest .
-    - docker push aishshelke/backend:latest
+    - docker build -t $IMAGE_NAME:$IMAGE_TAG .
+    - docker tag $IMAGE_NAME:$IMAGE_TAG $IMAGE_NAME:latest
+    - docker push $IMAGE_NAME:$IMAGE_TAG
+    - docker push $IMAGE_NAME:latest
+  only:
+    - main  
 
-
-
+######################################## STAGE:DEPLOY ########################################
 
 deploy:
   image: docker:20.10.9
@@ -37,8 +40,7 @@ deploy:
   stage: deploy
   script:
     - apk add --no-cache kubectl
+    - sed -i "s|image: aishshelke/backend:.*|image: aishshelke/backend:$IMAGE_TAG|g" k8s/deployment.yaml
     - kubectl apply -f k8s/
-
-
-
-
+  only:
+    - main
