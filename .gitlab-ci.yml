@@ -45,7 +45,7 @@ deploy:
   script:
     - apk add --no-cache kubectl
     - source build.env
-    - sed -i "s|image: aishshelke/backend:.*|image: aishshelke/backend:${IMAGE_TAG}|g" k8s/deployment.yaml
+    - sed -i 's@image@'$TAG'@' k8s/deployment.yaml
     - kubectl apply -f k8s/
   only:
     - main  # Adjust this branch as needed
