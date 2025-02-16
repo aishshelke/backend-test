@@ -45,7 +45,7 @@ deploy:
     - build:api
   stage: deploy
   script:
-    - source build_backend.env
+    - source build.env
     - sed -i "s|image@aishshelke/backend@.*|image@aishshelke/backend@${IMAGE_TAG}|g" k8s/backend-deployment.yaml
     - kubectl apply -f k8s/
   only:
