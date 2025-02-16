@@ -4,72 +4,6 @@ services:
 - docker:dind
 
 
-
-######################################## RULES, JOBS & YAML ANCHORS ########################################
-
-
-
-.push-image:
-  before_script:
-    - source branch_name.env
-  script:
-  - >
-    for tag in $(echo $TAGS | sed 's/,/ /g'); do
-      echo "pushing image with tag $tag";
-      docker tag $CI_REGISTRY_IMAGE:current $CI_REGISTRY_IMAGE:$tag;
-      docker push $CI_REGISTRY_IMAGE:$tag;
-    done
-
-.kube-context:
-  before_script:
-  - kubectl config get-contexts
-  - if [ -n "$KUBE_CONTEXT" ];then kubectl config use-context "$KUBE_CONTEXT"; fi
-
-.deploy:
-  stage: deploy
-  before_script:
-    - source branch_name.env
-  image:
-    name: alpine/k8s:1.21.13
-    entrypoint: [ "/bin/sh", "-c" ]
-  script:
-  - kubectl config get-contexts
-  - echo $KUBE_CONTEXT;
-  - if [ -n "$KUBE_CONTEXT" ];then kubectl config use-context "$KUBE_CONTEXT"; fi
-  - kubectl get ns
-  - |
-    if kubectl get configmap envs -n $K8S_NAMESPACE > /dev/null 2>&1; then
-      echo "ConfigMap 'envs' exists, fixing ownership metadata."
-      kubectl annotate configmap envs -n $K8S_NAMESPACE \
-        meta.helm.sh/release-name=$CHART_NAME-${CI_COMMIT_BRANCH_VAR:0:8} \
-        meta.helm.sh/release-namespace=$K8S_NAMESPACE --overwrite
-    else
-      echo "ConfigMap 'envs' does not exist, no need to fix ownership."
-    fi
-  - |
-    if kubectl get secret aws-credentials -n $K8S_NAMESPACE; then
-      echo "Updating existing secret..."
-      kubectl patch secret aws-credentials -n $K8S_NAMESPACE --type='json' -p='[{"op": "replace", "path": "/data/AWS_ACCESS_KEY_ID", "value": "'$(echo -n $AWS_ACCESS_KEY_ID | base64)'"},{"op": "replace", "path": "/data/AWS_SECRET_ACCESS_KEY", "value": "'$(echo -n $AWS_SECRET_ACCESS_KEY | base64)'"},{"op": "replace", "path": "/data/AWS_REGION", "value": "'$(echo -n $AWS_REGION | base64)'"}]'
-    else
-      echo "Creating new secret..."
-      kubectl create secret generic aws-credentials --from-literal=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID --from-literal=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY --from-literal=AWS_REGION=$AWS_REGION -n $K8S_NAMESPACE
-    fi
-  - helm repo add seeidcharts --username ${CI_REGISTRY_USER} --password
-    ${CI_REGISTRY_PASSWORD}
-    ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable
-    -n     $K8S_NAMESPACE
-  - helm upgrade $CHART_NAME-${CI_COMMIT_BRANCH_VAR:0:8}
-    seeidcharts/$CHART_NAME-${CI_COMMIT_BRANCH_VAR:0:8} --install -f
-    $CI_PROJECT_DIR/kubernetes/$CHART_NAME/on-demand/$VALUES_FILE -n $K8S_NAMESPACE
-    --version $HELM_VERSION
-  - echo $HELM_VERSION
-  - echo $K8S_NAMESPACE
-  - echo $CHART_NAME
-  - kubectl get all -n $K8S_NAMESPACE
-  - kubectl  rollout restart deployment $CHART_NAME-${CI_COMMIT_BRANCH_VAR:0:8}
-    -n $K8S_NAMESPACE
-
-
 ######################################## STAGES ########################################
 
 stages:
@@ -90,8 +24,8 @@ build:api:
   stage: build-and-push
   script:
     - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-    - docker build -t mydockerhub/backend:latest .
-    - docker push mydockerhub/backend:latest
+    - docker build -t aishshelke/backend:latest .
+    - docker push aishshelke/backend:latest
 
 
 
