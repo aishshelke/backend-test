@@ -23,7 +23,7 @@ build:api:
     - docker:20.10.9-dind
   stage: build-and-push
   script:
-    - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     - docker build -t aishshelke/backend:latest .
     - docker push aishshelke/backend:latest
 
