@@ -1,15 +1,18 @@
 image: docker:20.10.24
 
+options:
+  docker: true
+  
 pipelines:
   default:
     - step:
-        name: Build and Push Backend Docker Image
+        name: Build and Push Frontend Docker Image
         services:
           - docker
         script:
           - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-          - docker build -t mydockerhub/backend:latest .
-          - docker push mydockerhub/backend:latest
+          - docker build -t mydockerhub/frontend:latest .
+          - docker push mydockerhub/frontend:latest
 
     - step:
         name: Deploy to Kubernetes
