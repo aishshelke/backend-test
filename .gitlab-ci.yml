@@ -28,12 +28,9 @@ build:api:
     - docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
     - docker push ${IMAGE_NAME}:${IMAGE_TAG}
     - docker push ${IMAGE_NAME}:latest
-    - echo "IMAGE_TAG=${IMAGE_TAG}" >> build.env
-  artifacts:
-    reports:
-      dotenv: build.env
+    - echo "IMAGE_TAG=${IMAGE_TAG}" 
   only:
-    - main  # Adjust this branch as needed
+    - main
 
 ######################################## STAGE:DEPLOY ########################################
 
@@ -41,10 +38,8 @@ deploy:
   image: alpine/k8s:1.21.13
   services:
     - docker:20.10.9-dind
-  dependencies:
-    - build:api
   stage: deploy
   script:
     - kubectl apply -f k8s/
   only:
-    - main  # Adjust this branch as needed
+    - main  
