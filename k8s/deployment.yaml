@@ -17,4 +17,4 @@ spec:
       - name: backend
         image: aishshelke/backend:latest
         ports:
-        - containerPort: 5000
+        - containerPort: 3000

@@ -8,6 +8,6 @@ spec:
     app: backend
   ports:
     - protocol: TCP
-      port: 5000       # External port
-      targetPort: 5000  # Container port
+      port: 3000       # External port
+      targetPort: 3000  # Container port
   type: NodePort       # Change to LoadBalancer if using cloud
