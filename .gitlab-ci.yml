@@ -41,6 +41,8 @@ deploy:
   image: alpine/k8s:1.21.13
   services:
     - docker:20.10.9-dind
+  dependencies:
+    - build:api
   stage: deploy
   script:
     - source build_backend.env
