@@ -38,7 +38,7 @@ build:api:
 ######################################## STAGE:DEPLOY ########################################
 
 deploy:
-  image: docker:20.10.9
+  image: alpine/k8s:1.21.13
   services:
     - docker:20.10.9-dind
   stage: deploy
